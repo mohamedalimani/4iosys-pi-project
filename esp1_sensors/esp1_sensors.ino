@@ -30,7 +30,7 @@ const int flameSensor = A0 ;
 const int buzzer = 5 ;
 const int temp = 4 ;
 const int gaz = 0 ;
-float fs ;
+//float fs ;
 float t  ; 
 // TEMP sensor related data structures 
 OneWire oneWire(2);
@@ -55,9 +55,9 @@ void setup(){ //====> SETUP START
   client.setServer(mqttServer, mqttPort);
   //client.setCallback(callback);
 
-  while(!client.conntected()){
+  while(!client.connected()){
     Serial.println("Connecting to MQTT ...");
-    if(client.connect("ESP822Client", mqttUser, mqttPassword)){
+    if(client.connect("ESP8266Client", mqttUser, mqttPassword)){
        Serial.println("connected");
     } else {
       Serial.print("failed to connect with state");
@@ -79,10 +79,12 @@ void loop(){ //== ==> LOOP START
 } // ================> LOOP END
 
 void detect_flame(){
-  fs = analogRead(flameSensor) ;
+  float fs = analogRead(flameSensor) ;
   Serial.print("Flame: ");
-  Serial.println(fs);
-  client.publish(FLAME_CHANNEL, fs);
+  char res[8];
+  dtostrf(fs, 6, 2, res);
+  Serial.println(res);
+  client.publish(FLAME_CHANNEL, (char*)res);
   if (fs == 0){
       alarm() ;
     }
@@ -107,7 +109,9 @@ void detect_gaz(){
   float air_quality = gasSensor.getPPM();
   Serial.print("Air Quality: ");  
   Serial.print(air_quality);
-  client.publish(GAZ_CHANNEL, air_quality);
+  char res[8];
+  dtostrf(air_quality, 6, 2, res);
+  client.publish(GAZ_CHANNEL, (char*)res);
   Serial.println("  PPM");   
 }
 
