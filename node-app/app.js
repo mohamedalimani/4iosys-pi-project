@@ -13,7 +13,7 @@ let sockets = []
 server.on('connection', (socket) => {
   sockets.push(socket)
 
-  socket.on('message', (msg)=>{
+  socket.on('message', (msg)=>{ // differentitate between messages HERE
     if (msg == "OPEN"){console.log("I HAVE TO OPEN");client.publish("command/123", "OPEN");}
     if (msg == "CLOSE"){console.log("I HAVE TO CLOSE");client.publish("command/123", "CLOSE");}
     sockets.forEach( s => s.send(msg));
