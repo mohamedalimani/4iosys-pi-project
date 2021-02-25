@@ -78,6 +78,7 @@ Measurement.find({}, {"_id": 0, "containerRef": 1}, (err, docs)=>{ // get contai
       console.log(`update result ${JSON.stringify(res)}`)
     }
   ).then(()=>{
+    // Webservice
     app.get('/allContainers', (req, res) => {
       Measurement.find({}, {"_id": 0, "containerRef": 1}, (err, docs)=>{
         res.json(docs);
@@ -85,6 +86,13 @@ Measurement.find({}, {"_id": 0, "containerRef": 1}, (err, docs)=>{ // get contai
       //res.send('Hello World!')
     })
 
+    // Webservice
+    app.get('/measurements/:containerId', (req, res) => {
+      Measurement.findOne({"containerRef": req.params.containerId}, (err, docs)=>{
+        res.json(docs);
+      })
+      //res.send('Hello World!')
+    })
 
     app.listen(3000, "0.0.0.0", () => {
       console.log(`Express app listening at http://0.0.0.0:${port}`)
