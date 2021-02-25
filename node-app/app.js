@@ -24,7 +24,7 @@ let options = {
 
 
 // ========== MONGO =============
-mongoose.connect('mongodb://localhost:27017/containers', { useNewUrlParser: true })
+mongoose.connect('mongodb://192.168.1.14:27017/containers', { useNewUrlParser: true,  useUnifiedTopology: true })
 const db = mongoose.connection
 db.on('error', console.error.bind(console, 'connection error'))
 // call once on connection open
