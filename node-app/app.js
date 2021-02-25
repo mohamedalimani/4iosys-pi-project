@@ -77,7 +77,19 @@ Measurement.find({}, {"_id": 0, "containerRef": 1}, (err, docs)=>{ // get contai
       if (err) console.log(`Error: ${err}`);
       console.log(`update result ${JSON.stringify(res)}`)
     }
-  );
+  ).then(()=>{
+    app.get('/allContainers', (req, res) => {
+      Measurement.find({}, {"_id": 0, "containerRef": 1}, (err, docs)=>{
+        res.send(JSON.stringify(docs));
+      })
+      res.send('Hello World!')
+    })
+
+    app.listen(3000, () => {
+      console.log(`Example app listening at http://localhost:${port}`)
+    })
+    
+  });
 
 }) /* .select({"_id":0, "data":0, "containerRef":1}, */
 
@@ -163,17 +175,5 @@ function setupSubscriptions (containersRefs) {
 // ======== EXPRESS ==========
 
 
-app.get('/allContainers', (req, res) => {
-  Measurement.find({}, {"_id": 0, "containerRef": 1}, (err, docs)=>{
-    res.send(JSON.stringify(docs));
-  })
-  res.send('Hello World!')
-})
-
-
-
-app.listen(port, () => {
-  console.log(`Example app listening at http://localhost:${port}`)
-})
 
 
