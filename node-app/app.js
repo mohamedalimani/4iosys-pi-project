@@ -69,7 +69,11 @@ Measurement.find({}, {"_id": 0, "containerRef": 1}, (err, docs)=>{ // get contai
   console.log("UPDATING")
   Measurement.updateOne(
     {containerRef: '123'},
-    {$push: {"data.$.temp": [22]}}
+    {$push: {"data.$.temp": [22]}},
+    (err, res)=> {
+      if (err) console.log(`Error: ${err}`);
+      console.log(`update result ${res}`)
+    }
   );
 
 }) /* .select({"_id":0, "data":0, "containerRef":1}, */
