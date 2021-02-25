@@ -36,11 +36,13 @@ db.once('open', ()=> {
 const measurementSchema = new mongoose.Schema({
   containerRef: String,
   data: {
-    temp: [], // list of objects containg sensor data and timestamp
-    hum: [],  // ...
-    vib: [],  // ...
-    location: [], // ...
-    accel: []    // ...
+    temp:     [],   // list of objects containg sensor data and timestamp
+    gaz:      [],   // ...
+    flame:    [],   // ...
+    hum:      [],   // ...
+    vib:      [],   // ...
+    location: [],   // ...
+    accel:    []    // ...
   }
 });
 
@@ -64,6 +66,11 @@ Measurement.find({}, {"_id": 0, "containerRef": 1}, (err, docs)=>{ // get contai
   });
   setupMQTT();
   setupSubscriptions(containerRefs);
+  console.log("UPDATING")
+  Measurement.updateOne(
+    {containerRef: '123'},
+    {$push: {"data.$.temp": [22]}}
+  );
 
 }) /* .select({"_id":0, "data":0, "containerRef":1}, */
 
@@ -95,8 +102,16 @@ let setupMQTT = () => {
 
   // RECEIVE
   console.log("receiving");
-  client.on('message', (topic, message, packet) => {
+  client.on('message', (topic, message, packet) => { // save data to db depending on data type/containerRef
     console.log(`[received] Topic: ${topic}, Message:${message}, Packet:${packet}`);
+    // do a rigged container data update
+    if("temp" in topic) Measurement.updateOne(
+      {containerRef: '123'},
+      {$push: {"data.$.temp": [22]}}
+    );// do temp update
+    elif("flame" in topic) // do hum update
+    elif("gaz" in topic)  // do gaz update
+
   })
 }
 
