@@ -80,13 +80,14 @@ Measurement.find({}, {"_id": 0, "containerRef": 1}, (err, docs)=>{ // get contai
   ).then(()=>{
     app.get('/allContainers', (req, res) => {
       Measurement.find({}, {"_id": 0, "containerRef": 1}, (err, docs)=>{
-        res.send(JSON.stringify(docs));
+        res.json(docs);
       })
-      res.send('Hello World!')
+      //res.send('Hello World!')
     })
 
-    app.listen(3000, () => {
-      console.log(`Example app listening at http://localhost:${port}`)
+
+    app.listen(3000, "0.0.0.0", () => {
+      console.log(`Express app listening at http://0.0.0.0:${port}`)
     })
     
   });
@@ -125,7 +126,7 @@ let setupMQTT = () => {
   client.on('message', (topic, message, packet) => { // save data to db depending on data type/containerRef
     console.log(`[received] Topic: ${topic}, Message:${message}, Packet:${packet}`);
     // do a rigged container data update
-    if("temp" in topic) {
+    if(topic.includes("temp")) {
       Measurement.updateOne(
         {containerRef: '123'},
         {$push: {"data.temp": [parseInt(message)]}},
@@ -135,7 +136,7 @@ let setupMQTT = () => {
         }
       );
     }// do temp update
-    else if("flame" in topic) {
+    else if(topic.includes("flame")) {
       Measurement.updateOne(
         {containerRef: '123'},
         {$push: {"data.flame": [parseInt(message)]}},
@@ -145,7 +146,7 @@ let setupMQTT = () => {
         }
       );
     }// do hum update
-    else if ("gaz" in topic) {
+    else if (topic.includes("gaz")) {
       Measurement.updateOne(
         {containerRef: '123'},
         {$push: {"data.gaz": [parseInt(message)]}},
