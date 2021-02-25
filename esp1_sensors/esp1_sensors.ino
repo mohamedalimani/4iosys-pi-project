@@ -19,7 +19,7 @@ const char* mqttPassword = "";  // no cred for now
 /// Channels 
 const char* GAZ_CHANNEL = "gaz";  //"state/" + ID;
 const char* FLAME_CHANNEL = "flame";  //"command/" + ID;
-const char* TEMPERATURE_CHANNEL = "temp";
+const char* TEMPERATURE_CHANNEL = "temp"; ->   /temp²
 /// client
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -29,7 +29,7 @@ PubSubClient client(espClient);
 const int flameSensor = A0 ; 
 const int buzzer = 5 ;
 const int temp = 4 ;
-const int gaz = 0 ;
+const int gaz = 16 ;
 //float fs ;
 float t  ; 
 // TEMP sensor related data structures 
@@ -39,8 +39,8 @@ DallasTemperature tempSensor(&oneWire);
 
 
 void setup(){ //====> SETUP START
- // pinMode(flameSensor,OUTPUT) ;
- // pinMode(temp,OUTPUT) ;
+  pinMode(flameSensor,OUTPUT) ;
+  pinMode(temp,OUTPUT) ;
   tempSensor.begin();
   Serial.begin(9600) ;
 
@@ -85,13 +85,13 @@ void detect_flame(){
   dtostrf(fs, 6, 2, res);
   Serial.println(res);
   client.publish(FLAME_CHANNEL, (char*)res);
-  if (fs == 0){
+  if (fs < 200){
       alarm() ;
     }
   }
    
 void alarm(){
-  tone(buzzer,2000) ;
+  tone(buzzer,800) ;
   delay(200) ;
   noTone(buzzer) ; 
   delay(200) ;
@@ -105,7 +105,7 @@ void alarm(){
     */
 
 void detect_gaz(){
-  MQ135 gasSensor = MQ135(A0);
+  MQ135 gasSensor = MQ135(gaz);
   float air_quality = gasSensor.getPPM();
   Serial.print("Air Quality: ");  
   Serial.print(air_quality);
