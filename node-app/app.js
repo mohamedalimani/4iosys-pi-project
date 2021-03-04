@@ -9,11 +9,11 @@ const port = 3000
 
 // mqtt setup 
 //const IP = "192.168.1.13";
-const IP = "0.0.0.0";
+const IP = "localhost";
 const PORT ="1883";
 const ENDPOINT = `mqtt://${IP}:${PORT}`;
 let subTopic=""
-let subTopics = ["gaz", "flame", "temp"]
+let subTopics = ["gaz", "flame", "temp", "light"]
 let client = {}
 
 // connection options (optional)
@@ -27,7 +27,7 @@ let options = {
 
 
 // ========== MONGO =============
-mongoose.connect('mongodb://192.168.1.14:27017/containers', { useNewUrlParser: true,  useUnifiedTopology: true })
+mongoose.connect('mongodb://localhost:27017/containers', { useNewUrlParser: true,  useUnifiedTopology: true })
 const db = mongoose.connection
 db.on('error', console.error.bind(console, 'connection error'))
 // call once on connection open
@@ -65,12 +65,15 @@ Measurement.find({}, {"_id": 0, "containerRef": 1}, (err, docs)=>{ // get contai
   let containerRefs = [];
   docs.forEach((el)=>{
     containerRefs.push(el["containerRef"])
-    console.log(`found refs => ${containerRefs}`)
+    console.log(`Found containers => ${containerRefs}`)
   });
   setupMQTT();
   setupSubscriptions(containerRefs);
-  console.log("UPDATING")
-  Measurement.updateOne(
+  
+  
+  // OLD TESTING SCENARIO
+  // console.log("UPDATING")
+  /*Measurement.updateOne(
     {containerRef: '123'},
     {$push: {"data.$.temp": [22]}},
     (err, res)=> {
@@ -94,11 +97,35 @@ Measurement.find({}, {"_id": 0, "containerRef": 1}, (err, docs)=>{ // get contai
       //res.send('Hello World!')
     })
 
+    
+
     app.listen(3000, "0.0.0.0", () => {
       console.log(`Express app listening at http://0.0.0.0:${port}`)
     })
     
-  });
+  });*/
+
+  // Webservice
+  app.get('/allContainers', (req, res) => {
+    Measurement.find({}, {"_id": 0, "containerRef": 1}, (err, docs)=>{
+      res.json(docs);
+    })
+    //res.send('Hello World!')
+  })
+
+  // Webservice
+  app.get('/measurements/:containerId', (req, res) => {
+    Measurement.findOne({"containerRef": req.params.containerId}, (err, docs)=>{
+      res.json(docs);
+    })
+    //res.send('Hello World!')
+  })
+
+  
+
+  app.listen(3000, "0.0.0.0", () => {
+    console.log(`Express app listening at http://0.0.0.0:${port}`)
+  })
 
 }) /* .select({"_id":0, "data":0, "containerRef":1}, */
 
@@ -114,7 +141,7 @@ let setupMQTT = () => {
 
   // on CONNECT
   client.on('connect', ()=>{
-    console.log("connected  "+client.connected);
+    console.log("Connected to MQTT broker successfuly");
   })
 
   // ON ERROR
@@ -129,10 +156,11 @@ let setupMQTT = () => {
   // measurements topics, maybe recover all containerRefs from db and subscribe based on them to sensor topics
 
   // RECEIVE
-  console.log("receiving");
+  // console.log("receiving");
 
   client.on('message', (topic, message, packet) => { // save data to db depending on data type/containerRef
-    console.log(`[received] Topic: ${topic}, Message:${message}, Packet:${packet}`);
+    // console.log(`[Received] Topic: ${topic}, Message:${message}, Packet:${packet}`);
+    console.log(`[Received] Topic: ${topic}, Value:${message}`);
     // do a rigged container data update
     if(topic.includes("temp")) {
       Measurement.updateOne(
@@ -140,7 +168,8 @@ let setupMQTT = () => {
         {$push: {"data.temp": [parseInt(message)]}},
         (err, res)=> {
           if (err) console.log(`Error: ${err}`);
-          console.log(`update result ${JSON.stringify(res)}`);
+          // console.log(`update result ${JSON.stringify(res)}`);
+          console.log("[Updated] TEMPERATURE data")
         }
       );
     }// do temp update
@@ -150,7 +179,8 @@ let setupMQTT = () => {
         {$push: {"data.flame": [parseInt(message)]}},
         (err, res)=> {
           if (err) console.log(`Error: ${err}`);
-          console.log(`update result ${JSON.stringify(res)}`)
+          // console.log(`update result ${JSON.stringify(res)}`)
+          console.log("[Updated] FLAME data")
         }
       );
     }// do hum update
@@ -160,22 +190,39 @@ let setupMQTT = () => {
         {$push: {"data.gaz": [parseInt(message)]}},
         (err, res)=> {
           if (err) console.log(`Error: ${err}`);
-          console.log(`update result ${JSON.stringify(res)}`)
+          // console.log(`update result ${JSON.stringify(res)}`)
+          console.log("[Updated] GAZ data")
         }
     // do gaz update
     )
   }
+
+  else if (topic.includes("light")) {
+    Measurement.updateOne(
+      {containerRef: '123'},
+      {$push: {"data.light": [parseInt(message)]}},
+      (err, res)=> {
+        if (err) console.log(`Error: ${err}`);
+        // console.log(`update result ${JSON.stringify(res)}`)
+        console.log("[Updated] LIGHT data")
+      }
+  // do gaz update
+  )
+}
+
 })
+
+
 }
 
 function setupSubscriptions (containersRefs) {
   // SUBSCRIBE
-  console.log("subscribing");
+  // console.log("subscribing");
   containersRefs.forEach((cont) => { // all containers
     subTopics.forEach((topic) => { // subscribe to needed subchannels
       const channel = `${cont}/${topic}`;
       client.subscribe(channel, {qos: 1});
-      console.log(`Subscribed to ${channel}`);
+      console.log(`[Subscription] ${channel} Channel`);
     })
   })
 
