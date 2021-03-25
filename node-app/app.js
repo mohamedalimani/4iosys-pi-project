@@ -35,19 +35,28 @@ db.once('open', ()=> {
   console.log('Connected to database')
 }); 
 
+// SubSchemas
+const data_entry = new mongoose.Schema({
+  value: {type:Number},
+  time: {type:String}
+}/*, {timestamps: true}*/, {id:false, _id:false})
+
+
 // SCHEMAS 
 const measurementSchema = new mongoose.Schema({
   containerRef: String,
   data: {
-    temp:     [],   // list of objects containg sensor data and timestamp
-    gaz:      [],   // ...
-    flame:    [],   // ...
-    hum:      [],   // ...
-    vib:      [],   // ...
-    location: [],   // ...
-    accel:    []    // ...
+    temp:     [data_entry],   // list of objects containg sensor data and timestamp
+    gaz:      [data_entry],   // ...
+    flame:    [data_entry],   // ...
+    hum:      [data_entry],   // ...
+    vib:      [data_entry],   // ...
+    location: [data_entry],   // ...
+    accel:    [data_entry]    // ...
   }
 });
+
+
 
 const eventSchema = new mongoose.Schema({
   containerRef: String,
@@ -121,6 +130,33 @@ Measurement.find({}, {"_id": 0, "containerRef": 1}, (err, docs)=>{ // get contai
     //res.send('Hello World!')
   })
 
+//   Measurement.updateOne(
+//     {containerRef: '123'},
+//     {$push: {"data.temp": [{value:parseInt(message), stamp:new Date().toISOString}]}},
+//     (err, res)=> {
+//       if (err) console.log(`Error: ${err}`);
+//       // console.log(`update result ${JSON.stringify(res)}`);
+//       console.log("[Updated] TEMPERATURE data")
+//     }
+//   );
+// }
+  app.get('/add', (req, res) => {
+    Measurement.updateOne(
+      {containerRef: '123'},
+      {$push: {
+        "data.temp": {
+          $each: [{value:123, time:new Date().toISOString()}],
+          $position: 0 // Insert at the begging of the array
+        }
+      }},
+      (err, res) => {
+        if(err) console.log(`Error: ${err}`)
+        console.log("[Updated] TEMPERATURE data")
+      }
+    );
+    res.json('ok')
+  });
+
   
 
   app.listen(3000, "0.0.0.0", () => {
@@ -165,7 +201,12 @@ let setupMQTT = () => {
     if(topic.includes("temp")) {
       Measurement.updateOne(
         {containerRef: '123'},
-        {$push: {"data.temp": [parseInt(message)]}},
+        {$push: {
+          "data.temp": {
+            $each: [{value:parseInt(message), time:new Date().toISOString()}],
+            $position: 0 // Insert at the begging of the array
+          }
+        }},
         (err, res)=> {
           if (err) console.log(`Error: ${err}`);
           // console.log(`update result ${JSON.stringify(res)}`);
@@ -176,7 +217,12 @@ let setupMQTT = () => {
     else if(topic.includes("flame")) {
       Measurement.updateOne(
         {containerRef: '123'},
-        {$push: {"data.flame": [parseInt(message)]}},
+        {$push: {
+          "data.flame": {
+            $each: [{value:parseInt(message), time:new Date().toISOString()}],
+            $position: 0 // Insert at the begging of the array
+          }
+        }},
         (err, res)=> {
           if (err) console.log(`Error: ${err}`);
           // console.log(`update result ${JSON.stringify(res)}`)
@@ -187,7 +233,12 @@ let setupMQTT = () => {
     else if (topic.includes("gaz")) {
       Measurement.updateOne(
         {containerRef: '123'},
-        {$push: {"data.gaz": [parseInt(message)]}},
+        {$push: {
+          "data.gaz": {
+            $each: [{value:parseInt(message), time:new Date().toISOString()}],
+            $position: 0 // Insert at the begging of the array
+          }
+        }},
         (err, res)=> {
           if (err) console.log(`Error: ${err}`);
           // console.log(`update result ${JSON.stringify(res)}`)
@@ -200,7 +251,12 @@ let setupMQTT = () => {
   else if (topic.includes("light")) {
     Measurement.updateOne(
       {containerRef: '123'},
-      {$push: {"data.light": [parseInt(message)]}},
+      {$push: {
+        "data.light": {
+          $each: [{value:parseInt(message), time:new Date().toISOString()}],
+          $position: 0 // Insert at the begging of the array
+        }
+      }},
       (err, res)=> {
         if (err) console.log(`Error: ${err}`);
         // console.log(`update result ${JSON.stringify(res)}`)
