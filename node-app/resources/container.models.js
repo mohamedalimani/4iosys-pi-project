@@ -30,16 +30,18 @@ const eventSchema = new mongoose.Schema({
 
 // Registry schema
 const regitrySchema = new mongoose.Schema({
-  containerRef: String,
-  owner: String,
+  containerRef: {type:String, index: {unique:true, required:true, dropDups:true}},
+  owner: {type:String, required:true},
   location: String,
   destination: String,
   status: String, // for the moment string, change to number later when a status_code table is established
   last_active: String
 });
 
+
 //======== Models
 const Measurement = mongoose.model('Measurement', measurementSchema);
 const Event = mongoose.model('Event', eventSchema);
+const Registry = mongoose.model('Registry', regitrySchema);
 
-module.exports = {Measurement, Event}
+module.exports = {Measurement, Event, Registry}

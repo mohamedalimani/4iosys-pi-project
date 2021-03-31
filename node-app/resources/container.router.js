@@ -53,6 +53,7 @@ router.get('/add', (req, res) => {
 //====== Registry ====
 // Add Container
 router.post('/registry/add', (req, res)=> {
+  console.log("Received request")
   const containerRef = req.body.containerRef; // required
   const owner = req.body.owner; // required
   const location ="None" ;
@@ -70,8 +71,14 @@ router.post('/registry/add', (req, res)=> {
   })
 
   registry.save((err, registry)=> {
-    if(err) return console.err(err);
+    if(err) {
+      res.json({'message':'DUPLICATION_ERROR'})
+      return console.error("errored hah");
+    }
     console.log(`container: ${registry.containerRef} saved successfully `)
+    res.json({'message':'saved successfully '})
+    console.error()
+
   })
 });
 

@@ -1,6 +1,7 @@
 let mqtt = require('mqtt')
 const mongoose = require('mongoose')
 const express = require('express')
+const cors = require('cors')
 const app = express()
 const port = 3000
 const {Measurement,Event} = require('./resources/container.models')
@@ -50,7 +51,10 @@ Measurement.find({}, {"_id": 0, "containerRef": 1}, (err, docs)=>{ // get contai
   setupSubscriptions(containerRefs);
   
   // 
-  app.use('/container', containerRouter)
+  app.use(cors());
+  app.use(express.json())
+  app.use('/container', containerRouter);
+
 
   // OLD TESTING SCENARIO
   // console.log("UPDATING")
