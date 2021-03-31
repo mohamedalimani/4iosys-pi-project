@@ -3,6 +3,8 @@ const mongoose = require('mongoose')
 const express = require('express')
 const app = express()
 const port = 3000
+const {Measurement,Event} = require('./resources/container.models')
+const containerRouter = require('./resources/container.router')
 
 
 // ========= MQTT ==============
@@ -35,38 +37,6 @@ db.once('open', ()=> {
   console.log('Connected to database')
 }); 
 
-// SubSchemas
-const data_entry = new mongoose.Schema({
-  value: {type:Number},
-  time: {type:String}
-}/*, {timestamps: true}*/, {id:false, _id:false})
-
-
-// SCHEMAS 
-const measurementSchema = new mongoose.Schema({
-  containerRef: String,
-  data: {
-    temp:     [data_entry],   // list of objects containg sensor data and timestamp
-    gaz:      [data_entry],   // ...
-    flame:    [data_entry],   // ...
-    hum:      [data_entry],   // ...
-    vib:      [data_entry],   // ...
-    location: [data_entry],   // ...
-    accel:    [data_entry]    // ...
-  }
-});
-
-
-
-const eventSchema = new mongoose.Schema({
-  containerRef: String,
-  data: [] // list of objects containing event type and event timestamp
-});
-
-// Models
-const Measurement = mongoose.model('Measurement', measurementSchema);
-const Event = mongoose.model('Event', eventSchema);
-
 
 // Get all predefined containers and subscribe to their channels (where they report data according to standardized channel naming schema) 
 Measurement.find({}, {"_id": 0, "containerRef": 1}, (err, docs)=>{ // get containers refs 
@@ -79,7 +49,9 @@ Measurement.find({}, {"_id": 0, "containerRef": 1}, (err, docs)=>{ // get contai
   setupMQTT();
   setupSubscriptions(containerRefs);
   
-  
+  // 
+  app.use('/container', containerRouter)
+
   // OLD TESTING SCENARIO
   // console.log("UPDATING")
   /*Measurement.updateOne(
@@ -113,49 +85,6 @@ Measurement.find({}, {"_id": 0, "containerRef": 1}, (err, docs)=>{ // get contai
     })
     
   });*/
-
-  // Webservice
-  app.get('/allContainers', (req, res) => {
-    Measurement.find({}, {"_id": 0, "containerRef": 1}, (err, docs)=>{
-      res.json(docs);
-    })
-    //res.send('Hello World!')
-  })
-
-  // Webservice
-  app.get('/measurements/:containerId', (req, res) => {
-    Measurement.findOne({"containerRef": req.params.containerId}, (err, docs)=>{
-      res.json(docs);
-    })
-    //res.send('Hello World!')
-  })
-
-//   Measurement.updateOne(
-//     {containerRef: '123'},
-//     {$push: {"data.temp": [{value:parseInt(message), stamp:new Date().toISOString}]}},
-//     (err, res)=> {
-//       if (err) console.log(`Error: ${err}`);
-//       // console.log(`update result ${JSON.stringify(res)}`);
-//       console.log("[Updated] TEMPERATURE data")
-//     }
-//   );
-// }
-  app.get('/add', (req, res) => {
-    Measurement.updateOne(
-      {containerRef: '123'},
-      {$push: {
-        "data.temp": {
-          $each: [{value:123, time:new Date().toISOString()}],
-          $position: 0 // Insert at the begging of the array
-        }
-      }},
-      (err, res) => {
-        if(err) console.log(`Error: ${err}`)
-        console.log("[Updated] TEMPERATURE data")
-      }
-    );
-    res.json('ok')
-  });
 
   
 
@@ -289,3 +218,4 @@ function setupSubscriptions (containersRefs) {
 
 
 
+module.exports = app;
