@@ -35,7 +35,8 @@ const regitrySchema = new mongoose.Schema({
   location: String,
   destination: String,
   status: String, // for the moment string, change to number later when a status_code table is established
-  last_active: String
+  last_active: String,
+  pinned: Boolean
 });
 
 

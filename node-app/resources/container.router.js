@@ -1,4 +1,5 @@
 let router = require('express').Router()
+const app = require('../app');
 const {Measurement, Event, Registry} = require('./container.models')
 
   
@@ -6,11 +7,19 @@ const {Measurement, Event, Registry} = require('./container.models')
 
 // Webservice
 router.get('/allContainers', (req, res) => {
+  Registry.find({},  (err, docs)=>{
+    res.json(docs);
+  })
+  //res.send('Hello World!')
+})
+
+router.get('/allContainerRefs', (req, res) => {
   Measurement.find({}, {"_id": 0, "containerRef": 1}, (err, docs)=>{
     res.json(docs);
   })
   //res.send('Hello World!')
 })
+
 
 // Webservice
 router.get('/measurements/:containerId', (req, res) => {
@@ -60,6 +69,7 @@ router.post('/registry/add', (req, res)=> {
   const destination = "None";
   const status = "None";
   const last_active = "None";
+  const pinned = false;
 
   const registry = new Registry({
     containerRef: containerRef,
@@ -68,6 +78,7 @@ router.post('/registry/add', (req, res)=> {
     destination: destination,
     status: status,
     last_active: last_active,
+    pinned: pinned,
   })
 
   registry.save((err, registry)=> {
@@ -82,6 +93,35 @@ router.post('/registry/add', (req, res)=> {
   })
 });
 
+
+// Other webservices
+router.put('/pin/:containerRef', (req,res)=> {
+  const ref = req.params.containerRef;
+  Registry.updateOne(
+    {containerRef:ref},
+    {$set: {
+      pinned: true
+    }},
+    (err,docs) => {
+      if (err) return console.error();
+      res.json({'message':`container ${ref} pinned`})
+    }
+    )
+})
+
+router.put('/unpin/:containerRef', (req,res)=> {
+  const ref = req.params.containerRef;
+  Registry.updateOne(
+    {containerRef:ref},
+    {$set: {
+      pinned: false
+    }},
+    (err,docs) => {
+      if (err) return console.error();
+      res.json({'message':`container ${ref} unpinned`})
+    }
+    )
+})
 
 
   module.exports = router;
