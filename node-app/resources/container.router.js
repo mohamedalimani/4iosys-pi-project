@@ -1,12 +1,12 @@
 let router = require('express').Router()
 const app = require('../app');
-const {Measurement, Event, Registry} = require('./container.models')
+const {Measurement, Event, Registry,} = require('./container.models')
 
   
 
 
 // Webservice
-router.get('/allContainers', (req, res) => {
+router.get('/allContainers', (req, res) => {// Registered containers
   Registry.find({},  (err, docs)=>{
     res.json(docs);
   })
@@ -14,7 +14,7 @@ router.get('/allContainers', (req, res) => {
 })
 
 router.get('/allContainerRefs', (req, res) => {
-  Measurement.find({}, {"_id": 0, "containerRef": 1}, (err, docs)=>{
+  Measurement.find({}, {"_id": 0, "containerRef": 1}, (err, docs)=>{ // Containers w/ measurement data
     res.json(docs);
   })
   //res.send('Hello World!')
@@ -39,6 +39,9 @@ router.get('/measurements/:containerId', (req, res) => {
 //     }
 //   );
 // }
+
+// router.get('/measurements/')
+
 
 // Testing purposes
 router.get('/add', (req, res) => {
@@ -97,6 +100,7 @@ router.post('/registry/add', (req, res)=> {
 // Other webservices
 router.put('/pin/:containerRef', (req,res)=> {
   const ref = req.params.containerRef;
+  console.log('pinning container ' + ref)
   Registry.updateOne(
     {containerRef:ref},
     {$set: {
@@ -111,6 +115,7 @@ router.put('/pin/:containerRef', (req,res)=> {
 
 router.put('/unpin/:containerRef', (req,res)=> {
   const ref = req.params.containerRef;
+  console.log('unpinning container ' + ref)
   Registry.updateOne(
     {containerRef:ref},
     {$set: {

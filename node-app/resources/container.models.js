@@ -36,13 +36,19 @@ const regitrySchema = new mongoose.Schema({
   destination: String,
   status: String, // for the moment string, change to number later when a status_code table is established
   last_active: String,
-  pinned: Boolean
+  pinned: Boolean,
+  location_status: String,
 });
 
+const notificationSchema = new mongoose.Schema({
+  object:String,
+  content:String,
+})
 
 //======== Models
 const Measurement = mongoose.model('Measurement', measurementSchema);
 const Event = mongoose.model('Event', eventSchema);
 const Registry = mongoose.model('Registry', regitrySchema);
+const Notification = mongoose.model('Notification', notificationSchema);
 
-module.exports = {Measurement, Event, Registry}
+module.exports = {Measurement, Event, Registry, Notification}

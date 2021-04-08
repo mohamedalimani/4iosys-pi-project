@@ -4,15 +4,16 @@ const express = require('express')
 const cors = require('cors')
 const app = express()
 const port = 3000
-const {Measurement,Event} = require('./resources/container.models')
+const {Measurement,Event, Registry} = require('./resources/container.models')
 const containerRouter = require('./resources/container.router')
+const notificationRouter = require('./resources/notification.router')
 
 
 // ========= MQTT ==============
 
 // mqtt setup 
 //const IP = "192.168.1.13";
-const IP = "localhost";
+const IP = "0.0.0.0";
 const PORT ="1883";
 const ENDPOINT = `mqtt://${IP}:${PORT}`;
 let subTopic=""
@@ -40,7 +41,7 @@ db.once('open', ()=> {
 
 
 // Get all predefined containers and subscribe to their channels (where they report data according to standardized channel naming schema) 
-Measurement.find({}, {"_id": 0, "containerRef": 1}, (err, docs)=>{ // get containers refs 
+Registry.find({}, {"_id": 0, "containerRef": 1}, (err, docs)=>{ // get containers refs 
   console.log(`Found docs: ${docs}`);
   let containerRefs = [];
   docs.forEach((el)=>{
@@ -54,6 +55,7 @@ Measurement.find({}, {"_id": 0, "containerRef": 1}, (err, docs)=>{ // get contai
   app.use(cors());
   app.use(express.json())
   app.use('/container', containerRouter);
+  app.use('/notification', notificationRouter);
 
 
   // OLD TESTING SCENARIO
