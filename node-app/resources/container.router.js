@@ -73,6 +73,9 @@ router.post('/registry/add', (req, res)=> {
   const status = "None";
   const last_active = "None";
   const pinned = false;
+  const departureTime = req.body.departureTime;
+  const arrivalTime = req.body.arrivalTime;
+  const arrived = false;
 
   const registry = new Registry({
     containerRef: containerRef,
@@ -82,6 +85,9 @@ router.post('/registry/add', (req, res)=> {
     status: status,
     last_active: last_active,
     pinned: pinned,
+    departureTime: departureTime,
+    arrivalTime: arrivalTime,
+    arrived: arrived
   })
 
   registry.save((err, registry)=> {

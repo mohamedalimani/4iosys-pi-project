@@ -38,6 +38,8 @@ const regitrySchema = new mongoose.Schema({
   last_active: String,
   pinned: Boolean,
   location_status: String,
+  arrivalTime: String,
+  departureTime: String
 });
 
 const notificationSchema = new mongoose.Schema({
