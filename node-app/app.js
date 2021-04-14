@@ -132,10 +132,11 @@ let setupMQTT = () => {
   client.on('message', (topic, message, packet) => { // save data to db depending on data type/containerRef
     // console.log(`[Received] Topic: ${topic}, Message:${message}, Packet:${packet}`);
     console.log(`[Received] Topic: ${topic}, Value:${message}`);
+    const contRef = topic.split('/')[0];
     // do a rigged container data update
     if(topic.includes("temp")) {
       Measurement.updateOne(
-        {containerRef: '123'},
+        {containerRef: contRef},
         {$push: {
           "data.temp": {
             $each: [{value:parseInt(message), time:new Date().toISOString()}],
@@ -151,7 +152,7 @@ let setupMQTT = () => {
     }// do temp update
     else if(topic.includes("flame")) {
       Measurement.updateOne(
-        {containerRef: '123'},
+        {containerRef: contRef},
         {$push: {
           "data.flame": {
             $each: [{value:parseInt(message), time:new Date().toISOString()}],
@@ -167,7 +168,7 @@ let setupMQTT = () => {
     }// do hum update
     else if (topic.includes("gaz")) {
       Measurement.updateOne(
-        {containerRef: '123'},
+        {containerRef: contRef},
         {$push: {
           "data.gaz": {
             $each: [{value:parseInt(message), time:new Date().toISOString()}],
@@ -185,7 +186,7 @@ let setupMQTT = () => {
 
   else if (topic.includes("light")) {
     Measurement.updateOne(
-      {containerRef: '123'},
+      {containerRef: contRef},
       {$push: {
         "data.light": {
           $each: [{value:parseInt(message), time:new Date().toISOString()}],
