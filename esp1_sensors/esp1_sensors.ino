@@ -6,7 +6,7 @@
 const int PUBLISH_INTERVAL = 2000;
 
 const char* ssid = "TT_4A58"; // Broker server Network
-const char* password = "ucqefd64y7";  // Network pwd
+const char* password = "esprit2020";  // Network pwd
 const char* mqttServer ="192.168.1.18";  // Broker ip (raspi) 
 const int mqttPort = 1883;  // default MQTT port 
 const char* mqttUser = "";  // no credentials for now
@@ -17,7 +17,7 @@ const char* GAZ_CHANNEL = "123/gaz";  //"state/" + ID;
 const char* FLAME_CHANNEL = "123/flame";  //"command/" + ID;
 const char* LIGHT_CHANNEL = "123/light";
 const char* TEMPERATURE_CHANNEL = "123/temp"; //->   temp
-const char* DOOR_CHANNEL = "123/door";
+const char* VIBRATIONS_CHANNEL = "123/vib"; 
 
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -33,7 +33,6 @@ boolean sel_state[5][3] = {{LOW,LOW,LOW},
 int sel[3] = {4,0,2} ;  //A : 4 B : 0 C : 2
 String label[5] = {"flame :","gaz :","light exposure :","vibrations :","GPS :"} ;
 int shift_delay = 500 ;
-const int doorPin = 12; // esp8266 -> d6w
 OneWire oneWire(13);
 DallasTemperature tempSensor(&oneWire);
 
@@ -81,25 +80,16 @@ DallasTemperature tempSensor(&oneWire);
      CBA = 011 => Z = 4th sensor (GPS)
      */
     shift_sensors() ;
-    detect_door_button();
     }
-
-  void detect_door_button(){
-    float data;
-    dtostrf(digitalRead(doorPin), 6, 2, res);
-    Serial.print("DOOR: ") ;
-    Serial.println(res);
-    client.publish(DOOR_CHANNEL, (char*)res);
-  }
 
   void alarm(){
     Serial.println("something is wrong inside the container") ;
   }
 
   void shift_sensors(){
-       for (int l = 0; l<3;l++){
+       for (int l = 0; l<4;l++){
       Serial.println(label[l]) ;
-      for (int c = 0; c<3;c++){
+      for (int c = 0; c<4;c++){
       digitalWrite(sel[c],sel_state[l][c]) ;
       }      
       float data = analogRead(Z) ; 
@@ -119,9 +109,15 @@ DallasTemperature tempSensor(&oneWire);
           dtostrf(data, 6, 2, res);
           client.publish(LIGHT_CHANNEL, (char*)res);
         break ;
-        case 3 : Serial.println("GPS data should be here") ;
+        case 3 :
+          int zm = map (data, 267, 402, -100, 100); 
+          float zg = (float) zm / (- 100.00); 
+          zg = zg * 180; 
+          res[8] ;
+          dtostrf(zg,6,2, res) ;
+          client.publish(VIBRATIONS_CHANNEL,(char*)res) ;
         break ;
-         case 4 : Serial.println("vibrations data should be here") ;
+        case 4 : Serial.println("GPS data should be here") ;
         break ;
         default:Serial.println("error !") ;
         break ;
@@ -138,12 +134,10 @@ DallasTemperature tempSensor(&oneWire);
      tempSensor.requestTemperatures();
      Serial.println("temperature :") ;
     Serial.println(tempSensor.getTempCByIndex(0));
-    
     res[8];
     dtostrf(tempSensor.getTempCByIndex(0), 6, 2, res);
-    client.publish(TEMPERATURE_CHANNEL, (char*)res);
-    
-          
+    client.publish(TEMPERATURE_CHANNEL, (char*)res);  
+       
      if (tempSensor.getTempCByIndex(0) > 40){
       Serial.println("temperature is over 40C") ;
       }
@@ -156,8 +150,12 @@ DallasTemperature tempSensor(&oneWire);
       if (li == 1 && d > 340){   // check gaz
         alarm() ;
         }
-        if (li == 2 && d > 550){   // check light exposure
-          Serial.print("high light exposure, looks like your") ;
-          Serial.println(" container is open") ;
-          }
+      if (li == 2 && d > 550){   // check light exposure
+        Serial.print("high light exposure, looks like your") ;
+        Serial.println(" container is open") ;
+        }
+      if (li == 3 && d <= 50)
+      {
+        Serial.println("container is off balance") ;
+        }
     }
