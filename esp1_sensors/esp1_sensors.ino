@@ -6,7 +6,7 @@
 const int PUBLISH_INTERVAL = 2000;
 
 const char* ssid = "TT_4A58"; // Broker server Network
-const char* password = "esprit2020";  // Network pwd
+const char* password = "ucqefd64y7";  // Network pwd
 const char* mqttServer ="192.168.1.18";  // Broker ip (raspi) 
 const int mqttPort = 1883;  // default MQTT port 
 const char* mqttUser = "";  // no credentials for now
@@ -16,7 +16,8 @@ char res[8] ;
 const char* GAZ_CHANNEL = "123/gaz";  //"state/" + ID;
 const char* FLAME_CHANNEL = "123/flame";  //"command/" + ID;
 const char* LIGHT_CHANNEL = "123/light";
-const char* TEMPERATURE_CHANNEL = "123/temp"; //->   temp²
+const char* TEMPERATURE_CHANNEL = "123/temp"; //->   temp
+const char* DOOR_CHANNEL = "123/door";
 
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -32,6 +33,7 @@ boolean sel_state[5][3] = {{LOW,LOW,LOW},
 int sel[3] = {4,0,2} ;  //A : 4 B : 0 C : 2
 String label[5] = {"flame :","gaz :","light exposure :","vibrations :","GPS :"} ;
 int shift_delay = 500 ;
+const int doorPin = 12; // esp8266 -> d6w
 OneWire oneWire(13);
 DallasTemperature tempSensor(&oneWire);
 
@@ -79,7 +81,16 @@ DallasTemperature tempSensor(&oneWire);
      CBA = 011 => Z = 4th sensor (GPS)
      */
     shift_sensors() ;
+    detect_door_button();
     }
+
+  void detect_door_button(){
+    float data;
+    dtostrf(digitalRead(doorPin), 6, 2, res);
+    Serial.print("DOOR: ") ;
+    Serial.println(res);
+    client.publish(DOOR_CHANNEL, (char*)res);
+  }
 
   void alarm(){
     Serial.println("something is wrong inside the container") ;
@@ -127,11 +138,11 @@ DallasTemperature tempSensor(&oneWire);
      tempSensor.requestTemperatures();
      Serial.println("temperature :") ;
     Serial.println(tempSensor.getTempCByIndex(0));
-    /**
+    
     res[8];
     dtostrf(tempSensor.getTempCByIndex(0), 6, 2, res);
     client.publish(TEMPERATURE_CHANNEL, (char*)res);
-    **/
+    
           
      if (tempSensor.getTempCByIndex(0) > 40){
       Serial.println("temperature is over 40C") ;

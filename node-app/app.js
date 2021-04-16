@@ -17,7 +17,7 @@ const IP = "0.0.0.0";
 const PORT ="1883";
 const ENDPOINT = `mqtt://${IP}:${PORT}`;
 let subTopic=""
-let subTopics = ["gaz", "flame", "temp", "light"]
+let subTopics = ["gaz", "flame", "temp", "light","door"]
 let client = {}
 
 // connection options (optional)
@@ -200,6 +200,34 @@ let setupMQTT = () => {
       }
   // do gaz update
   )
+}
+
+else if (topic.includes("door")) {
+  Measurement.updateOne(
+    {containerRef: contRef},
+    {$push: {
+      "data.door": {
+        $each: [{value:parseInt(message), time:new Date().toISOString()}],
+        $position: 0 // Insert at the begging of the array
+      }
+    }},
+    (err, res)=> {
+      if (err) console.log(`Error: ${err}`);
+      // console.log(`update result ${JSON.stringify(res)}`)
+      console.log("[Updated] DOOR data")
+    }
+)
+// ------
+Registry.updateOne(
+  {containerRef: contRef},
+  {$set: {
+    "door": parseInt(message) == 1?true:false  // true/1 -> pushed (door closed), 0/false a-> not pushed (door opened)
+  }},
+  (err, res) => {
+    if (err) console.log(`Error: ${err}`);
+    else console.log("[Update] DOOR status set")
+  }
+)
 }
 
 })

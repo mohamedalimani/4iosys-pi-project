@@ -19,7 +19,8 @@ const measurementSchema = new mongoose.Schema({
     hum:      [data_entry],   // ...
     vib:      [data_entry],   // ...
     location: [data_entry],   // ...
-    accel:    [data_entry]    // ...
+    accel:    [data_entry],    // ...
+    door:     [data_entry]
   }
 });
 // Event schema
@@ -39,7 +40,8 @@ const regitrySchema = new mongoose.Schema({
   pinned: Boolean,
   location_status: String,
   arrivalTime: String,
-  departureTime: String
+  departureTime: String,
+  door: Boolean
 });
 
 const notificationSchema = new mongoose.Schema({
